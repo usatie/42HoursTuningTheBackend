@@ -171,6 +171,8 @@ const getRecord = async (req, res) => {
     files: [],
   };
 
+  // TODO: Rewrite
+  /*
   const searchItemQs = `select * from record_item_file where linked_record_id = ? order by item_id asc`;
   const [itemResult] = await pool.query(searchItemQs, [line.record_id]);
   mylog('itemResult');
@@ -187,6 +189,25 @@ const getRecord = async (req, res) => {
     }
 
     recordInfo.files.push({ itemId: item.item_id, name: fileName });
+  }
+  */
+  const searchFileQs = `
+    SELECT
+        f.name,
+        rif.item_id
+    FROM 
+        record_item_file AS rif
+        LEFT JOIN
+        file AS f ON (rif.linked_file_id = f.file_id)
+    WHERE
+        rif.linked_record_id = ?
+    ORDER BY
+        rif.item_id asc;`
+  const [filesResult] = await pool.query(searchFileQs, [line.record_id]);
+
+  for (let i = 0; i < filesResult.length; i++) {
+    const file = filesResult[i];
+    recordInfo.files.push({ itemId: file.item_id, name: file.name });
   }
 
   await pool.query(
