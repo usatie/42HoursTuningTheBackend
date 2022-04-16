@@ -30,3 +30,8 @@ CREATE INDEX session_value_index USING hash ON session(value);
 
 -- file(only select by file_id)
 CREATE INDEX file_id_index USING hash ON file(file_id);
+
+-- record.is_open
+ALTER TABLE record ADD COLUMN is_open BOOL NOT NULL;
+UPDATE record SET is_open = 1 WHERE status = 'open';
+-- ALTER TABLE record DROP COLUMN status;

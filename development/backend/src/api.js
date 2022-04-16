@@ -81,8 +81,8 @@ const postRecords = async (req, res) => {
 
   await pool.query(
     `insert into record
-    (record_id, status, title, detail, category_id, application_group, created_by, created_at, updated_at)
-    values (?, "open", ?, ?, ?, ?, ?, now(), now())`,
+    (record_id, status, title, detail, category_id, application_group, created_by, created_at, updated_at, is_open)
+    values (?, "open", ?, ?, ?, ?, ?, now(), now(), 1)`,
     [
       `${newId}`,
       `${body.title}`,
@@ -130,6 +130,7 @@ const getRecord = async (req, res) => {
   let recordInfo = {
     recordId: '',
     status: '',
+    is_open: 0,
     title: '',
     detail: '',
     categoryId: null,
@@ -177,6 +178,7 @@ const getRecord = async (req, res) => {
 
   recordInfo.recordId = line.record_id;
   recordInfo.status = line.status;
+  recordInfo.is_open = line.is_open;
   recordInfo.title = line.title;
   recordInfo.detail = line.detail;
   recordInfo.categoryId = line.category_id;
@@ -257,9 +259,9 @@ const tomeActive = async (req, res) => {
   }
 
   let searchRecordQs =
-    'select * from record where status = "open" and (category_id, application_group) in (';
+    'select * from record where is_open = 1 and (category_id, application_group) in (';
   let recordCountQs =
-    'select count(*) from record where status = "open" and (category_id, application_group) in (';
+    'select count(*) from record where is_open = 1 and (category_id, application_group) in (';
   const param = [];
 
   for (let i = 0; i < targetCategoryAppGroupList.length; i++) {
@@ -391,7 +393,7 @@ const allActive = async (req, res) => {
     limit = 10;
   }
 
-  const searchRecordQs = `select * from record where status = "open" order by updated_at desc, record_id asc limit ? offset ?`;
+  const searchRecordQs = `select * from record where is_open = 1 order by updated_at desc, record_id asc limit ? offset ?`;
 
   const [recordResult] = await pool.query(searchRecordQs, [limit, offset]);
   mylog(recordResult);
@@ -478,7 +480,7 @@ const allActive = async (req, res) => {
     items[i] = resObj;
   }
 
-  const recordCountQs = 'select count(*) from record where status = "open"';
+  const recordCountQs = 'select count(*) from record where is_open = 1';
 
   const [recordCountResult] = await pool.query(recordCountQs);
   if (recordCountResult.length === 1) {
@@ -506,7 +508,7 @@ const allClosed = async (req, res) => {
     limit = 10;
   }
 
-  const searchRecordQs = `select * from record where status = "closed" order by updated_at desc, record_id asc limit ? offset ?`;
+  const searchRecordQs = `select * from record where is_open = 0 order by updated_at desc, record_id asc limit ? offset ?`;
 
   const [recordResult] = await pool.query(searchRecordQs, [limit, offset]);
   mylog(recordResult);
@@ -593,7 +595,7 @@ const allClosed = async (req, res) => {
     items[i] = resObj;
   }
 
-  const recordCountQs = 'select count(*) from record where status = "closed"';
+  const recordCountQs = 'select count(*) from record where is_open = 0';
 
   const [recordCountResult] = await pool.query(recordCountQs);
   if (recordCountResult.length === 1) {
@@ -621,7 +623,7 @@ const mineActive = async (req, res) => {
     limit = 10;
   }
 
-  const searchRecordQs = `select * from record where created_by = ? and status = "open" order by updated_at desc, record_id asc limit ? offset ?`;
+  const searchRecordQs = `select * from record where created_by = ? and is_open = 1 order by updated_at desc, record_id asc limit ? offset ?`;
 
   const [recordResult] = await pool.query(searchRecordQs, [user.user_id, limit, offset]);
   mylog(recordResult);
@@ -708,7 +710,7 @@ const mineActive = async (req, res) => {
     items[i] = resObj;
   }
 
-  const recordCountQs = 'select count(*) from record where created_by = ? and status = "open"';
+  const recordCountQs = 'select count(*) from record where created_by = ? and is_open = 1';
 
   const [recordCountResult] = await pool.query(recordCountQs, [user.user_id]);
   if (recordCountResult.length === 1) {
@@ -730,8 +732,12 @@ const updateRecord = async (req, res) => {
 
   const recordId = req.params.recordId;
   const status = req.body.status;
-
-  await pool.query(`update record set status = ? where record_id = ?`, [
+  let is_open = 0;
+  if (status == 'open') {
+    is_open = 1;
+  }
+  await pool.query(`update record set is_open = ?, status = ? where record_id = ?`, [
+    `${is_open}`,
     `${status}`,
     `${recordId}`,
   ]);
