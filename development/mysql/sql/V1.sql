@@ -38,3 +38,5 @@ UPDATE record SET is_open = 1 WHERE status = 'open';
 
 -- slow order by
 CREATE INDEX hoge ON record(updated_at DESC, record_id ASC);
+CREATE INDEX hoge2 USING hash ON record(category_id);
+CREATE INDEX hoge3 USING hash ON record(application_group);
