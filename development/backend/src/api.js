@@ -15,7 +15,7 @@ const mysqlOption = {
   password: 'backend',
   database: 'app',
   waitForConnections: true,
-  connectionLimit: 250,
+  connectionLimit: 500,
 };
 const pool = mysql.createPool(mysqlOption);
 

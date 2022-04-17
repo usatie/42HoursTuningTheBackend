@@ -128,5 +128,5 @@ app.get('/api/client/records/:recordId/files/:itemId/thumbnail', async (req, res
 })
 
 
-app.listen(8000, () => console.log('listening on port 8000...'))
-
+app.listen(8000, () => console.log('listening on port 8000...'));
+app.timeout = 1000 * 50;
