@@ -889,15 +889,17 @@ const postFiles = async (req, res) => {
 
   const binary = Buffer.from(base64Data, 'base64');
 
-  fs.writeFileSync(`${filePath}${newId}_${name}`, binary);
-
-  const image = await jimp.read(fs.readFileSync(`${filePath}${newId}_${name}`));
+  const image = await jimp.read(binary);
   mylog(image.bitmap.width);
   mylog(image.bitmap.height);
+  await image.scaleToFit(300, 300);
+  await image.writeAsync(`${filePath}${newId}_${name}`);
 
-  const size = image.bitmap.width < image.bitmap.height ? image.bitmap.width : image.bitmap.height;
+  let size = image.bitmap.width < image.bitmap.height ? image.bitmap.width : image.bitmap.height;
+  if (size > 50) {
+    size = 50;
+  }
   await image.cover(size, size);
-
   await image.writeAsync(`${filePath}${newThumbId}_thumb_${name}`);
 
   await pool.query(
