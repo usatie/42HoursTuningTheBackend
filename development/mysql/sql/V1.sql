@@ -35,3 +35,6 @@ CREATE INDEX file_id_index USING hash ON file(file_id);
 ALTER TABLE record ADD COLUMN is_open BOOL NOT NULL;
 UPDATE record SET is_open = 1 WHERE status = 'open';
 -- ALTER TABLE record DROP COLUMN status;
+
+-- slow order by
+CREATE INDEX hoge ON record(updated_at DESC, record_id ASC);
